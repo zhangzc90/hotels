@@ -16,7 +16,7 @@
 		if(isset($meituan->data)&&$meituan->data->searchresult){
 			$data=$meituan->data->searchresult;
 			echo '<table border=1 cellpadding=5 cellspacing=0>';
-			echo '<thead><tr><td>编号</td><td style="width:400px;">酒店名称</td><td style="width:300px;">地址</td><td>美团价格</td><td>艺龙价格</td><td>去哪儿价格</td></tr></thead>';		
+			echo '<thead><tr><td>编号</td><td style="width:400px;">酒店名称</td><td style="width:300px;">地址</td><td>美团价格</td><td>艺龙价格</td><td>去哪儿价格</td><td>途牛价格</td><td>携程价格</td></tr></thead>';		
 			foreach ($data as $value) {
 				echo '<tr>';
 				$name=$value->name;
@@ -34,7 +34,14 @@
 				// 去哪儿网价格
 				$quar=get_qunar_hotels($curl,$name,'郑州',date('Y-m-d',strtotime($sdate)),date('Y-m-d',strtotime($edate)+60*60*24),$lat,$lng);
 				echo '<td title="',$quar[1],'">￥',$quar[0],'</td>';
+				//途牛网价格
+				$tuniu=get_tuniu_hotels($curl,$name,'1202',date('Y-m-d',strtotime($sdate)),date('Y-m-d',strtotime($edate)+60*60*24),$lat,$lng);
+				echo '<td title="',$tuniu[1],'">￥',$tuniu[0],'</td>';
 				
+				//携程
+				$xiecheng=get_ctrip_hotels($curl,$name,'559',date('Ymd',strtotime($sdate)),date('Ymd',strtotime($edate)+60*60*24),$lat,$lng);
+				echo '<td title="',$xiecheng[1],'">',$xiecheng[0],'</td>';
+
 				///////////////////////////////////////////////////////////
 				echo '</tr>';
 				$i++;
@@ -50,9 +57,8 @@
 		$result=$curl->init($url,0,0,0,0,'Mozilla/5.0 (iPhone; CPU iPhone OS 9_1 like Mac OS X) AppleWebKit/601.1.46 (KHTML, like Gecko) Version/9.0 Mobile/13B143 Safari/601.1');
 		if($result){
 			$result=json_decode($result);
-			$list=$result->hotelList;
-			if($list){
-				foreach ($list as $value) {
+			if(isset($result->hotelList)&&$result->hotelList){
+				foreach ($result->hotelList as $value) {
 					$name=$value->hotelName;
 					$price=$value->lowestPrice;
 					$pt=coordinate_switch($value->baiduLatitude,$value->baiduLongitude);
@@ -60,10 +66,9 @@
 					if($dis<0.5)
 						return array($price,$name);
 				}
-				return 0;
+				return array(0,$name);
 			}
 		}
-
 	}
 	// 去哪儿
 	function get_qunar_hotels($curl,$name,$cityId,$sdate,$edate,$lat,$lng){
@@ -71,12 +76,12 @@
 		global $cookie_name;
 		$cip = '123.125.68.'.mt_rand(0,254);
 		$xip = '125.90.88.'.mt_rand(0,254);
-		$result=$curl->init($url,0,0,0,'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36',$cookie_name,array('CLIENT-IP:'.$cip,'X-FORWARDED-FOR:'.$xip));
+		$ua='Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36';
+		$result=$curl->init($url,0,0,$cookie_name,0,$ua,array('CLIENT-IP:'.$cip,'X-FORWARDED-FOR:'.$xip));
 		$result=json_decode($result);
 		if($result->msg==''){			
-			$list=$result->data->hotels;		
-			if($list){
-				foreach ($list as $value) {
+			if(isset($result->data->hotels)&&$result->data->hotels){
+				foreach ($result->data->hotels as $value) {
 					$name=$value->attrs->hotelName;
 					$price=$value->price;
 					$coord=$value->attrs->gpoint;
@@ -86,15 +91,56 @@
 					if($dis<0.5)
 						return array($price,$name);
 				}
-				return 0;
+				return array(0,$name);
 			}
 		}else{
 			return '接口出错';
 		}
 	}
 	// 途牛
-	function get_tuniu_hotels($curl,$name,$cityId,$sdate,$edate,$lat,$lng){
-		https://m.tuniu.com/api/hotel/API/h5?c={"ct":30,"v":"1.0.0","as":"hotelList"}&d={"page":1,"limit":10,"cityCode":1202,"checkInDate":"2017-11-09","checkOutDate":"2017-11-10","key":"圣菲特花园酒店","lowPrice":0,"highPrice":0,"stars":[],"brands":[],"poiNames":"","districtName":"","poiCodes":[],"districtCode":0,"hotelLabels":[],"facilities":[],"lat":"34.76056","lng":"113.61856","radius":0,"sort":1,"index":0,"suggest":{},"isBookable":0,"isConfirm":0}
+	function get_tuniu_hotels($curl,$name,$cityId,$sdate,$edate,$lat,$lng){	
+		$url=sprintf('http://m.tuniu.com/api/hotel/API/h5?c={"ct":30,"v":"1.0.0","as":"hotelList"}&d={"page":1,"limit":10,"cityCode":%s,"checkInDate":"%s","checkOutDate":"%s","key":"%s","lowPrice":0,"highPrice":0,"stars":[],"poiNames":"","poiCodes":[],"districtCode":0,"radius":0,"sort":1,"index":0,"suggest":{},"isBookable":0,"isConfirm":0}',$cityId,$sdate,$edate,$name);
+		$result=$curl->init($url,0,0,0,0,'Mozilla/5.0 (iPhone; CPU iPhone OS 9_1 like Mac OS X) AppleWebKit/601.1.46 (KHTML, like Gecko) Version/9.0 Mobile/13B143 Safari/601.1');
+		if($result){
+			$result=json_decode($result);
+			if($result->success&&$result->msg=='OK'){
+				if(isset($result->data->rows)&&$result->data->rows){
+					foreach ($result->data->rows as $value) {
+						$name=$value->chineseName;
+						$price=$value->price;
+						$dis=distance($value->lat,$value->lng,$lat,$lng,false);
+						if($dis<0.5)
+							return array($price,$name);
+					}
+					return array(0,$name);
+				}
+			}else
+				return array('无','无');
+			
+		}
+	}
+	// 携程
+	function get_ctrip_hotels($curl,$name,$cityId,$sdate,$edate,$lat,$lng){
+		$url='http://m.ctrip.com/webapp/hotel/j/hotellistbody?pageid=212093';
+		$ua='Mozilla/5.0 (iPhone; CPU iPhone OS 9_1 like Mac OS X) AppleWebKit/601.1.46 (KHTML, like Gecko) Version/9.0 Mobile/13B143 Safari/601.1';
+		$post=sprintf('{"adultCounts":0,"checkinDate":"%s","checkoutDate":"%s","cityID":%s,"keyword":"%s","userLongitude":0}',$sdate,$edate,$cityId,$name);
+		// 20171108日期格式  郑州
+		$res=$curl->init($url,$post,0,0,0,$ua,array('content-type:application/json'));
+		preg_match('/\<textarea class=\"hotelist_response\" style=\"display:none;\"\>(.*)\<\/textarea\>/', $res,$match);
+		if($match[1])
+			$res=$match[1];
+		$res=json_decode($res);
+		$list=$res->hotelListResponse->hotelInfoList;
+		if($list){
+			foreach ($list as $value) {
+				$name=$value->shortName;
+				$price=$value->price;
+				$dis=distance($value->lat,$value->lon,$lat,$lng,false);
+				if($dis<0.5)
+					return array($price,$name);
+			}
+			return array(0,$name);
+		}
 	}
 
 	//百度转腾讯坐标转换
@@ -140,7 +186,7 @@
 
 
 
-	// 测试代码
+	// run
 	$curl=new HttpHelper();
 	$offset=0;
 	$cityId=73;

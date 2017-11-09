@@ -3,9 +3,11 @@
 	CURL类
 	*/
 	class HttpHelper{
-		private $ch=null;
-		private $cookie_name;
-		private $ssl=0;
+		private $ch=null;		//curl对象
+		public 	$cookie_name;	//cookies路径与名称设置
+		public 	$ssl=0;			//ssl-http访问链接设置
+		public 	$ua; 			//user-agent设置
+		public 	$header;		//头部信息设置
 		function __construct(){
 			$this->ch=curl_init();	
 		}
@@ -19,15 +21,19 @@
 
 			// 加载设置
 			if($post)
-				$this->set_post($post);
+				$this->set_post(1,$post);
+			else
+				$this->set_post(0);
+
 			if($this->ssl||$ssl)
 				$this->set_ssl();
 			if($sc&&$sc!==''){
 				// $this->cookie_name=tempnam('./cookies','cookies_');
 				$this->set_cookies($sc);
 			}
-			if($gc&&$gc!=='')
+			if($gc&&$gc!==''){
 				$this->get_cookies($gc);
+			}
 			if($ua&&$ua!=='')
 				$this->set_user_agent($ua);
 			if($header)
@@ -37,9 +43,10 @@
 			return $result;
 		}
 		// 设置$post参数
-		function set_post($post){
-			curl_setopt($this->ch,CURLOPT_POST,1);
-			curl_setopt($this->ch,CURLOPT_POSTFIELDS,$post);
+		function set_post($ispost,$post=''){
+			curl_setopt($this->ch,CURLOPT_POST,$ispost);
+			if($post!='')
+				curl_setopt($this->ch,CURLOPT_POSTFIELDS,$post);
 		}
 		// 设置ssl连接
 		function set_ssl(){
