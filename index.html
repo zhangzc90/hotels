@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>计算器</title>
+	<meta charset="utf-8">
+	<style type="text/css">
+		.container{
+			width: 960px;
+			margin: 20px auto;
+		}
+		input{
+			height: 25px;
+			padding: 5px;
+		}
+		#point{
+			width: 100%;
+		}
+		button{
+			width: 100%;
+			height: 50px;
+			background:#d9534f;
+			border:none;
+			color: #fff;
+			cursor: pointer;
+		}
+		.container div{
+			padding: 8px 0;
+		}
+		.pc{
+			display: flex;
+		}
+		.formula{
+			text-align: center;
+			font-weight: bold;
+			padding: 8px 0;
+		}
+		.result{
+			text-align: left;
+			font-size: 25px;
+			font-weight: bold;
+		}
+		.color{
+			color: #d9534f;
+		}
+		.result .b{
+			display: flex;
+			padding: 2px 0;
+		}
+		.result .a{
+			width: 500px;
+		}
+	</style>
+</head>
+<body onkeydown='keydown();'>
+	<div class='container'>
+		<div class='pc'>
+			<div class='price'>
+				价格：<input class='prices' type='number' value=''>
+			</div>
+			<div class='price'>
+				价格：<input class='prices' type='number' value=''>
+			</div>
+			<div class='price'>
+				价格：<input class='prices' type='number' value=''>
+			</div>
+			<div class='price'>
+				价格：<input class='prices' type='number' value=''>
+			</div>
+			<div class='price'>
+				价格：<input class='prices' type='number' value=''>
+			</div>
+			<div class='price'>
+				价格：<input class='prices' type='number' value=''>
+			</div>
+		</div>
+		<div class='point'>
+			比率：<input id='point' type="number" name="" value='0.09'>
+		</div>
+		<div class='run'>
+			<button type='button' onclick='caculator()'>计算</button>
+		</div>
+		<div class='formula'></div>
+		<div class='result'></div>
+	</div>
+	<script type="text/javascript">
+		function caculator(){
+			// document.querySelector('.formula').innerHTML='';
+			document.querySelector('.result').innerHTML='';
+			var prices=document.querySelectorAll('.prices');
+			var point=document.getElementById('point').value;
+			for(var price of prices){
+				price=price.value;
+				var result=price-(price*point);
+				// document.querySelector('.formula').innerHTML+='计算公式：'+price+'-('+price+'*'+point+')<br>';
+				document.querySelector('.result').innerHTML+='<div class="b"><div class="a">计算公式：'+price+'-('+price+'*'+point+')</div><div class="color">= ￥'+result.toFixed(2)+'</div></div>';
+			}
+			
+		}
+
+		function keydown(){
+			if(event.keyCode==13){
+				caculator();
+			}
+		}
+	</script>
+</body>
+</html>
