@@ -76,5 +76,3 @@
 			return curl_getinfo($this->ch); 
 		}
 	}
-
-

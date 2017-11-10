@@ -16,7 +16,7 @@
 		if(isset($meituan->data)&&$meituan->data->searchresult){
 			$data=$meituan->data->searchresult;
 			echo '<table border=1 cellpadding=5 cellspacing=0>';
-			echo '<thead><tr><td>编号</td><td style="width:400px;">酒店名称</td><td style="width:300px;">地址</td><td>美团价格</td><td>艺龙价格</td><td>去哪儿价格</td><td>途牛价格</td><td>携程价格</td></tr></thead>';		
+			echo '<thead><tr><td>编号</td><td style="width:400px;">酒店名称</td><td style="width:300px;">地址</td><td>美团价格</td><td>途牛价格</td><td>去哪儿价格</td><td>艺龙价格</td><td>携程价格</td></tr></thead>';		
 			foreach ($data as $value) {
 				echo '<tr>';
 				$name=$value->name;
@@ -28,15 +28,16 @@
 				echo sprintf('<td>%s</td><td>%s</td><td>%s</td><td>￥%d</td>',$i,$name,$addr,$lowestPrice);
 
 				// 这里开始提取其他渠道的价格
-				// 艺龙价格
-				$elong=get_elong_hotels($curl,$name,1701,date('Y-m-d',strtotime($sdate)),date('Y-m-d',strtotime($edate)+60*60*24),$lat,$lng);
-				echo '<td title="',$elong[1],'">￥',$elong[0],'</td>';
+			
+					//途牛网价格
+				$tuniu=get_tuniu_hotels($curl,$name,'1202',date('Y-m-d',strtotime($sdate)),date('Y-m-d',strtotime($edate)+60*60*24),$lat,$lng);
+				echo '<td title="',$tuniu[1],'">￥',$tuniu[0],'</td>';
 				// 去哪儿网价格
 				$quar=get_qunar_hotels($curl,$name,'郑州',date('Y-m-d',strtotime($sdate)),date('Y-m-d',strtotime($edate)+60*60*24),$lat,$lng);
 				echo '<td title="',$quar[1],'">￥',$quar[0],'</td>';
-				//途牛网价格
-				$tuniu=get_tuniu_hotels($curl,$name,'1202',date('Y-m-d',strtotime($sdate)),date('Y-m-d',strtotime($edate)+60*60*24),$lat,$lng);
-				echo '<td title="',$tuniu[1],'">￥',$tuniu[0],'</td>';
+				// 艺龙价格
+				$elong=get_elong_hotels($curl,$name,1701,date('Y-m-d',strtotime($sdate)),date('Y-m-d',strtotime($edate)+60*60*24),$lat,$lng);
+				echo '<td title="',$elong[1],'">￥',$elong[0],'</td>';
 				
 				//携程
 				$xiecheng=get_ctrip_hotels($curl,$name,'559',date('Ymd',strtotime($sdate)),date('Ymd',strtotime($edate)+60*60*24),$lat,$lng);
@@ -184,8 +185,6 @@
 		return ($miles ? ($km * 0.621371192) : $km);
 	}
 
-
-
 	// run
 	$curl=new HttpHelper();
 	$offset=0;
@@ -200,4 +199,3 @@
 	$curl->init('http://touch.qunar.com/hotel/hotellist?city=郑州',0,$cookie_name,0,0,'Mozilla/5.0 (iPhone; CPU iPhone OS 9_1 like Mac OS X) AppleWebKit/601.1.46 (KHTML, like Gecko) Version/9.0 Mobile/13B143 Safari/601.1',array('CLIENT-IP:'.$cip,'X-FORWARDED-FOR:'.$xip));
 	//执行入口，以美团网价格为起点
 	get_meituan_hotels($curl,$offset,$cityId,$sedate,$sdate,$edate);
-
