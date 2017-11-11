@@ -96,35 +96,35 @@
 				//酒店名称、城市id、入住时间、离开时间、星级
 				$city=array('郑州'=>array('meituan'=>73,'elong'=>1701,'tuniu'=>1202,'ctrip'=>559,'qunar'=>'郑州'));
 				// $hotel=new hotels('',$city['郑州'],date('Ymd'),date('Ymd'),'0,1;2,3');
-				if(!$_POST)
-					return;
-				$name=$_POST['hotelName'];
-				$c=$city[$_POST['city']];
-				$stars=(implode(';', $_POST['stars']));	
-				$hotel=new hotels($name,$c,date('Ymd'),date('Ymd'),$stars);
-				// 美团数据提取
-				$meituan=get_meituan($curl,$hotel);
-				$i=1;
-				foreach ($meituan as $m) {
-					$m->cityID=$city['郑州'];
-					// 艺龙
-					$m->indate=date('Ymd');
-					$m->outdate=date('Ymd');
-					$elong=get_elong($curl,$m);
+				if($_POST){
+					$name=$_POST['hotelName'];
+					$c=$city[$_POST['city']];
+					$stars=(implode(';', $_POST['stars']));	
+					$hotel=new hotels($name,$c,date('Ymd'),date('Ymd'),$stars);
+					// 美团数据提取
+					$meituan=get_meituan($curl,$hotel);
+					$i=1;
+					foreach ($meituan as $m) {
+						$m->cityID=$city['郑州'];
+						// 艺龙
+						$m->indate=date('Ymd');
+						$m->outdate=date('Ymd');
+						$elong=get_elong($curl,$m);
 
-					// 途牛
-					$m->indate=date('Y-m-d',strtotime($m->indate));
-					$m->outdate=date('Y-m-d',strtotime($m->outdate)+60*60*24);
-					$tuniu=get_tuniu($curl,$m);
+						// 途牛
+						$m->indate=date('Y-m-d',strtotime($m->indate));
+						$m->outdate=date('Y-m-d',strtotime($m->outdate)+60*60*24);
+						$tuniu=get_tuniu($curl,$m);
 
-					// 去哪儿						
-					$qunar=get_qunar($curl,$m);
-					// 携程
-					$m->indate=date('Ymd');
-					$m->outdate=date('Ymd',strtotime('+1 day'));
-					$ctrip=get_ctrip($curl,$m);
-					echo sprintf('<tr><td>%d</td><td>%s</td><td>%s</td><td class="price">￥%s</td><td class="price">￥%s</td><td class="price">￥%s</td><td class="price">￥%s</td><td class="price">%s</td></tr>',$i++,$m->name,$m->address,$m->price,$tuniu->price,$qunar->price,$elong->price,$ctrip->price);
-				}
+						// 去哪儿						
+						$qunar=get_qunar($curl,$m);
+						// 携程
+						$m->indate=date('Ymd');
+						$m->outdate=date('Ymd',strtotime('+1 day'));
+						$ctrip=get_ctrip($curl,$m);
+						echo sprintf('<tr><td>%d</td><td>%s</td><td>%s</td><td class="price">￥%s</td><td class="price">￥%s</td><td class="price">￥%s</td><td class="price">￥%s</td><td class="price">%s</td></tr>',$i++,$m->name,$m->address,$m->price,$tuniu->price,$qunar->price,$elong->price,$ctrip->price);
+					}
+				}	
 			?>
 			</tbody>
 		</table>
@@ -137,6 +137,7 @@
 				return false;
 			}
 		}
+		console.log("author:zhangzc\r\n邮箱:mr394649849@163.com\r\n");
 	</script>
 </body>
 </html>
