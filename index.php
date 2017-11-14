@@ -31,7 +31,7 @@
 		.table td, .table th{
 			padding: 0.5rem;
 		}
-		.price{
+		.price a{
 			color: #d9534f;
 		}
 	</style>
@@ -105,15 +105,14 @@
 					$meituan=get_meituan($curl,$hotel);
 					$i=1;
 					foreach ($meituan as $m) {
-						$m->cityID=$city['郑州'];
+						$m->cityID=$c;
 						// 艺龙
 						$m->indate=date('Ymd');
 						$m->outdate=date('Ymd');
 						$elong=get_elong($curl,$m);
-
 						// 途牛
 						$m->indate=date('Y-m-d',strtotime($m->indate));
-						$m->outdate=date('Y-m-d',strtotime($m->outdate)+60*60*24);
+						$m->outdate=date('Y-m-d',strtotime($m->outdate)+60*60*24);	
 						$tuniu=get_tuniu($curl,$m);
 
 						// 去哪儿						
@@ -122,9 +121,36 @@
 						$m->indate=date('Ymd');
 						$m->outdate=date('Ymd',strtotime('+1 day'));
 						$ctrip=get_ctrip($curl,$m);
-						echo sprintf('<tr><td>%d</td><td>%s</td><td>%s</td><td class="price">￥%s</td><td class="price">￥%s</td><td class="price">￥%s</td><td class="price">￥%s</td><td class="price">%s</td></tr>',$i++,$m->name,$m->address,$m->price,$tuniu->price,$qunar->price,$elong->price,$ctrip->price);
-					}
-				}	
+						// 接收城市在EOF中无法转换的问题
+						$qc=$m->cityID['qunar'];
+						echo
+<<<EOF
+							<tr>
+								<td>$i</td>
+								<td>$m->name</td>
+								<td>$m->address</td>
+								<td class="price">
+									<a target="_blank" href="http://hotel.meituan.com/$m->uid">￥$m->price</a>
+								</td>
+								<td class="price">
+									<a target="_blank" href="http://hotel.tuniu.com/detail/$tuniu->uid">￥$tuniu->price</a>
+								</td>
+								<td class="price">
+									<a target="_blank" href="http://touch.qunar.com/hotel/hoteldetail?city=$qc&seq=$qunar->uid">￥$qunar->price</a>
+								</td>
+								<td class="price">
+									<a target="_blank" href="$elong->uid">￥$elong->price</a>
+								</td>
+								<td class="price">
+									<a target="_blank" href="http://hotels.ctrip.com/hotel/$ctrip->uid.html">$ctrip->price</a>
+								</td>
+							</tr>
+EOF;
+						$i++;
+					}					
+				}
+				// 删除cookie使用过的cookie文件节省空间
+				// unlink($curl->cookie_name);
 			?>
 			</tbody>
 		</table>
