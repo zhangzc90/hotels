@@ -6,10 +6,10 @@
 	ob_implicit_flush(1);
 	set_time_limit(0); 
 	date_default_timezone_set('Asia/Shanghai');	
-	error_reporting(E_ALL);
+	error_reporting(E_ERROR);
 ?>
 <!DOCTYPE html>
-<html>
+<html lang='zh'>
 <head>
 	<title>价格数据对比</title>
 	<meta charset="utf-8">
@@ -87,6 +87,7 @@
 			</thead>
 			<tbody>
 			<?php
+				define('COOKIE_QUNAR', tempnam('./cookies','cookies_'));
 				// 酒店参数
 				//酒店名称、城市id、入住时间、离开时间、星级
 				$city=array('郑州'=>array('meituan'=>73,'elong'=>1701,'tuniu'=>1202,'ctrip'=>559,'qunar'=>'郑州','dfyoo'=>1202));
@@ -102,24 +103,23 @@
 					$i=1;
 					foreach ($meituan as $mhotel) {
 						// 艺龙
-						$ehotel=new hotels($name,$c,date('Ymd'),date('Ymd'),$stars,$mhotel->lat,$mhotel->lng);
+						$ehotel=new hotels($mhotel->name,$c,date('Ymd'),date('Ymd'),$stars,$mhotel->lat,$mhotel->lng);
 						$elong=get_elong($ehotel);
 
 						// 途牛
-						$thotel=new hotels($name,$c,date('Y-m-d'),date('Y-m-d',strtotime('+1 day')),$stars,$mhotel->lat,$mhotel->lng);
+						$thotel=new hotels($mhotel->name,$c,date('Y-m-d'),date('Y-m-d',strtotime('+1 day')),$stars,$mhotel->lat,$mhotel->lng);
 						$tuniu=get_tuniu($thotel);
 
  						// 去哪儿	
- 						$qhotel=new hotels($name,$c,date('Y-m-d'),date('Y-m-d',strtotime('+1 day')),$stars,$mhotel->lat,$mhotel->lng);					
-						$qunar=get_qunar($qhotel);
+ 						$qhotel=new hotels($mhotel->name,$c,date('Y-m-d'),date('Y-m-d',strtotime('+1 day')),$stars,$mhotel->lat,$mhotel->lng);					
+						$qunar=get_qunar($qhotel,COOKIE_QUNAR);
 
 						// 携程
-						$chotel=new hotels($name,$c,date('Ymd'),date('Ymd',strtotime('+1 day')),$stars,$mhotel->lat,$mhotel->lng);		
+						$chotel=new hotels($mhotel->name,$c,date('Ymd'),date('Ymd',strtotime('+1 day')),$stars,$mhotel->lat,$mhotel->lng);		
 						$ctrip=get_ctrip($chotel);
 						
 						// 笛风数据
-						echo '<pre>';
-						$dhotel=new hotels($name,$c,date('Y-m-d'),date('Y-m-d',strtotime('+1 day')),$stars,$mhotel->lat,$mhotel->lng);		
+						$dhotel=new hotels($mhotel->name,$c,date('Y-m-d'),date('Y-m-d',strtotime('+1 day')),$stars,$mhotel->lat,$mhotel->lng);		
 						$dfyoo=get_dfyoo($dhotel);
 						// 接收城市在EOF中无法转换的问题
 						$qc=$c['qunar'];

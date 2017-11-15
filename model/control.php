@@ -100,16 +100,14 @@
 		return new hotels();
 	}
 	// 去哪儿
-	function get_qunar($hotel){
+	function get_qunar($hotel,$cookie_name=''){
 		$curl=new HttpHelper();
+		$curl->cookie_name=$cookie_name;
 		if(!file_exists($curl->cookie_name)){
 			$curl->set_cookies=1;
 			$curl->run('http://touch.qunar.com/hotel/hotellist?city=郑州');
 			$curl->set_cookies=0;
 		}
-		$cip = '139.125.'.mt_rand(0,254).'.'.mt_rand(0,254);
-		$xip = '139.90.'.mt_rand(0,254).'.'.mt_rand(0,254);
-		$curl->header=array('CLIENT-IP:'.$cip,'X-FORWARDED-FOR:'.$xip);
 		$url=sprintf('http://touch.qunar.com/api/hotel/hotellist?sort=0&keywords=%s&checkInDate=%s&checkOutDate=%s&couponsSelected=-1&city=%s&page=1',$hotel->name,$hotel->indate,$hotel->outdate,$hotel->cityID['qunar']);
 		$curl->get_cookies=1;
 		$result=get_hotels($curl,$url);
