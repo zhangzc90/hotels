@@ -19,6 +19,10 @@
 			curl_setopt($this->ch, CURLOPT_RETURNTRANSFER, 1);
 			curl_setopt($this->ch, CURLOPT_TIMEOUT,30);
 			curl_setopt($this->ch, CURLOPT_CONNECTTIMEOUT, 30);
+			// 设置头部信息
+			$cip = '113.125.68.'.mt_rand(0,254);
+			$xip = '115.90.88.'.mt_rand(0,254);
+			$this->header=array('CLIENT-IP:'.$cip,'X-FORWARDED-FOR:'.$xip);
 		}
 		// url与post设置需要分别设置
 		function run($url,$post=''){

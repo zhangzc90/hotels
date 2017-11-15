@@ -6,7 +6,7 @@
 	ob_implicit_flush(1);
 	set_time_limit(0); 
 	date_default_timezone_set('Asia/Shanghai');	
-	error_reporting(0);
+	error_reporting(E_ALL);
 ?>
 <!DOCTYPE html>
 <html>
@@ -78,6 +78,7 @@
 					<th>酒店名称</th>
 					<th>地址</th>
 					<th>美团</th>
+					<th>笛风</th>
 					<th>途牛</th>
 					<th>去哪儿</th>
 					<th>艺龙</th>
@@ -86,51 +87,53 @@
 			</thead>
 			<tbody>
 			<?php
-				$curl=new HttpHelper();
-				// 设置头部信息
-				$cip = '113.125.68.'.mt_rand(0,254);
-				$xip = '115.90.88.'.mt_rand(0,254);
-				$curl->header=array('CLIENT-IP:'.$cip,'X-FORWARDED-FOR:'.$xip);
-
 				// 酒店参数
 				//酒店名称、城市id、入住时间、离开时间、星级
-				$city=array('郑州'=>array('meituan'=>73,'elong'=>1701,'tuniu'=>1202,'ctrip'=>559,'qunar'=>'郑州'));
-				// $hotel=new hotels('',$city['郑州'],date('Ymd'),date('Ymd'),'0,1;2,3');
+				$city=array('郑州'=>array('meituan'=>73,'elong'=>1701,'tuniu'=>1202,'ctrip'=>559,'qunar'=>'郑州','dfyoo'=>1202));
 				if($_POST){
+					// 获取页面输入参数
 					$name=$_POST['hotelName'];
 					$c=$city[$_POST['city']];
-					$stars=(implode(';', $_POST['stars']));	
+					$stars=@(implode(';', $_POST['stars']));
+					//封装查询数据对象 
 					$hotel=new hotels($name,$c,date('Ymd'),date('Ymd'),$stars);
 					// 美团数据提取
-					$meituan=get_meituan($curl,$hotel);
+					$meituan=get_meituan($hotel);
 					$i=1;
-					foreach ($meituan as $m) {
-						$m->cityID=$c;
+					foreach ($meituan as $mhotel) {
 						// 艺龙
-						$m->indate=date('Ymd');
-						$m->outdate=date('Ymd');
-						$elong=get_elong($curl,$m);
-						// 途牛
-						$m->indate=date('Y-m-d',strtotime($m->indate));
-						$m->outdate=date('Y-m-d',strtotime($m->outdate)+60*60*24);	
-						$tuniu=get_tuniu($curl,$m);
+						$ehotel=new hotels($name,$c,date('Ymd'),date('Ymd'),$stars,$mhotel->lat,$mhotel->lng);
+						$elong=get_elong($ehotel);
 
-						// 去哪儿						
-						$qunar=get_qunar($curl,$m);
+						// 途牛
+						$thotel=new hotels($name,$c,date('Y-m-d'),date('Y-m-d',strtotime('+1 day')),$stars,$mhotel->lat,$mhotel->lng);
+						$tuniu=get_tuniu($thotel);
+
+ 						// 去哪儿	
+ 						$qhotel=new hotels($name,$c,date('Y-m-d'),date('Y-m-d',strtotime('+1 day')),$stars,$mhotel->lat,$mhotel->lng);					
+						$qunar=get_qunar($qhotel);
+
 						// 携程
-						$m->indate=date('Ymd');
-						$m->outdate=date('Ymd',strtotime('+1 day'));
-						$ctrip=get_ctrip($curl,$m);
+						$chotel=new hotels($name,$c,date('Ymd'),date('Ymd',strtotime('+1 day')),$stars,$mhotel->lat,$mhotel->lng);		
+						$ctrip=get_ctrip($chotel);
+						
+						// 笛风数据
+						echo '<pre>';
+						$dhotel=new hotels($name,$c,date('Y-m-d'),date('Y-m-d',strtotime('+1 day')),$stars,$mhotel->lat,$mhotel->lng);		
+						$dfyoo=get_dfyoo($dhotel);
 						// 接收城市在EOF中无法转换的问题
-						$qc=$m->cityID['qunar'];
+						$qc=$c['qunar'];
 						echo
 <<<EOF
 							<tr>
 								<td>$i</td>
-								<td>$m->name</td>
-								<td>$m->address</td>
+								<td>$mhotel->name</td>
+								<td>$mhotel->address</td>
 								<td class="price">
-									<a target="_blank" href="http://hotel.meituan.com/$m->uid">￥$m->price</a>
+									<a target="_blank" href="http://hotel.meituan.com/$mhotel->uid">￥$mhotel->price</a>
+								</td>
+								<td class="price">
+									<a target="_blank" href="https://www.dfyoo.com/hotel/detail/$dfyoo->uid?checkInDate=$dhotel->indate&checkOutDate=$dhotel->outdate">￥$dfyoo->price</a>
 								</td>
 								<td class="price">
 									<a target="_blank" href="http://hotel.tuniu.com/detail/$tuniu->uid">￥$tuniu->price</a>
@@ -149,8 +152,6 @@ EOF;
 						$i++;
 					}					
 				}
-				// 删除cookie使用过的cookie文件节省空间
-				// unlink($curl->cookie_name);
 			?>
 			</tbody>
 		</table>
